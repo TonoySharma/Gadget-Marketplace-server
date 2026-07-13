@@ -224,6 +224,7 @@ export async function connectToMongoDB() {
         res.status(500).json({
           success: false,
           message: "Failed to add product",
+          
         });
       }
     });
