@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
+  res.send('Hello People!');
 });
 
 
@@ -23,8 +23,6 @@ export async function connectToMongoDB() {
     const db = client.db("gadgets_hub");
 
     const productsCollection = db.collection("all-products");
-    const usersCollection = db.collection("users");
-    const cartCollection = db.collection("carts");
 
 
 
@@ -209,8 +207,10 @@ export async function connectToMongoDB() {
       try {
         const product = req.body;
 
-        const result = await productsCollection.insertOne({...product,
-          createdAt: new Date(),});
+        const result = await productsCollection.insertOne({
+          ...product,
+          createdAt: new Date(),
+        });
 
         res.status(201).json({
           success: true,
@@ -224,9 +224,26 @@ export async function connectToMongoDB() {
         res.status(500).json({
           success: false,
           message: "Failed to add product",
-          
+
         });
       }
+    });
+
+    // delete product API
+    app.delete("/api/products/:id", async (req, res) => {
+
+      const id = req.params.id;
+
+      const result = await productsCollection.deleteOne({
+        _id: new ObjectId(id)
+      });
+
+
+      res.json({
+        success: true,
+        data: result
+      });
+
     });
 
 
@@ -234,16 +251,7 @@ export async function connectToMongoDB() {
 
 
 
-
-
-
-
-
-
-
-
-
-    await client.connect();
+    // await client.connect();
     console.log("You successfully connected to MongoDB!");
     return client;
   } catch (err) {
