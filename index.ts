@@ -41,8 +41,9 @@ const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
 
     next()
 
-  }catch (error) {
-    return res.status(401).json({success: false,
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
       message: "Invalid token",
     });
   }
@@ -234,7 +235,7 @@ export async function connectToMongoDB() {
     });
 
     // Add product API
-    app.post("/api/add-products", verifyToken , async (req: Request, res: Response) => {
+    app.post("/api/add-products", verifyToken, async (req: Request, res: Response) => {
       try {
         const product = req.body;
 
@@ -294,7 +295,7 @@ export async function disconnectFromMongoDB() {
   // await client.close();
 }
 
-app.listen(PORT, async () => {
-  console.log(`Server running on port ${PORT}`);
-  await connectToMongoDB();
-});
+// app.listen(PORT, async () => {
+//   console.log(`Server running on port ${PORT}`);
+//   await connectToMongoDB();
+// });
