@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { MongoClient, ObjectId } from 'mongodb';
+import { createRemoteJWKSet, jwtVerify } from 'jose-cjs';
 
 dotenv.config();
 
@@ -16,7 +17,37 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello People!');
 });
 
+const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`))
+const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
 
+  if (!authHeader || !authHeader.startsWith("Bearer")) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+  try {
+    const { payload } = await jwtVerify(token, JWKS)
+    // console.log(payload, 'payload');
+
+    next()
+
+  }catch (error) {
+    return res.status(401).json({success: false,
+      message: "Invalid token",
+    });
+  }
+
+}
 
 export async function connectToMongoDB() {
   try {
@@ -203,7 +234,7 @@ export async function connectToMongoDB() {
     });
 
     // Add product API
-    app.post("/api/add-products", async (req: Request, res: Response) => {
+    app.post("/api/add-products", verifyToken , async (req: Request, res: Response) => {
       try {
         const product = req.body;
 
